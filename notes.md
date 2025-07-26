@@ -7,5 +7,20 @@ bcz  of being edge time framework, this applicatoin made from next js do not run
 but in pure backend things keep running all the time.
 
 so now db is not connected all the time, it is connected only when the request comes. now what if you made 2 consecutinve requests, and in second requ, may be there exist already connection with db, this way you will take many db connections, so always next if db connected, it will not create new connection, it will use the existing one.
+----------
 
+now diff between nextauth package and core mongoose mthod of saving user in db, cz this nextauth is good but that is quite starddized , they just have limited fields(like email, password, name) and you can not add more fields to it, so people often do not use that for signup bcz generally we take more fields in signup, but in signin , all people just take 2 fields(email, password), so we use it there.
 
+also we are taking username, email, pass, otp. 
+<!-- 
+code should effectively handles both scenarios of registering a new user and updating an existing but unverified user account with a new password and verification code.
+IF existingUserByEmail EXISTS THEN
+    IF existingUserByEmail.isVerified THEN
+        success: false, // User already exists and is verified
+    ELSE
+        // Save the updated user // Update the existing user with new password and verification code
+    END IF
+ELSE
+    // Create a new user with the provided details
+    // Save the new user
+END IF
