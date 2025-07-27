@@ -24,3 +24,15 @@ ELSE
     // Create a new user with the provided details
     // Save the new user
 END IF
+
+-->
+----------
+now NEXT AUTH course
+-- there are some namings or folder and file structures that you need to be aware of when working with NextAuth.js
+-- NextAuth.js is typically placed in the `src/api/auth/[...nextauth].ts` file
+-- You can customize the authentication providers, callbacks, and session management in this file
+------------
+
+(auth) --- when you  write like this, you are bascially grouping all the auth related files in a folder called auth, and then you can write your own custom logic inside that folder, like you can write your own custom sign-in page, or you can write your own custom sign-up page, etc. and auth naam se route nhi hoga , cz uske saaame paranthesses lage hain
+
+now nextauth good thing is that it also create a ui for you, but it will not be shown without making a file called `sign-in.tsx` in the `src/app/auth` folder, so you still have to create that file, but you can use the default UI provided by NextAuth.js or you can create your own custom UI. you get client api 
