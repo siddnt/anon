@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useDebounce } from '@uidotdev/usehooks';
+import { useDebounceValue } from 'usehooks-ts';
 import * as z from 'zod';
 
 import { Button } from '@/components/ui/button';
@@ -28,8 +28,8 @@ export default function SignUpForm() {
   const [usernameMessage, setUsernameMessage] = useState('');
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const debouncedUsername = useDebounce(username, 300);
-// The useDebounce hook in your sign-up form is a performance optimization technique that prevents excessive API calls by delaying the execution of a function until a user has stopped typing.
+  const [debouncedUsername] = useDebounceValue(username, 300);
+// The useDebounceValue hook in your sign-up form is a performance optimization technique that prevents excessive API calls by delaying the execution of a function until a user has stopped typing.
   const router = useRouter();
   const { toast } = useToast();
 
@@ -67,9 +67,14 @@ export default function SignUpForm() {
 
   const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
     setIsSubmitting(true); // so that we can disable the button while the form is being submitted
+    
+    // Debug: Log the data being sent
+    console.log('Form data being sent:', data);
+    console.log('Username state:', username);
+    
     try {
       const response = await axios.post<ApiResponse>('/api/sign-up', data); // try printing this data in console to see the data structure
-      // console.log('Sign-up response:', response.data);
+      console.log('Sign-up response:', response.data);
 
       toast({
         title: 'Success',
@@ -81,12 +86,13 @@ export default function SignUpForm() {
       setIsSubmitting(false); // Reset the submitting state so the button can be clicked again
     } catch (error) {
       console.error('Error during sign-up:', error);
+      console.error('Full error object:', JSON.stringify(error, null, 2));
 
       const axiosError = error as AxiosError<ApiResponse>;
 
       // Default error message
-      let errorMessage = axiosError.response?.data.message;
-      ('There was a problem with your sign-up. Please try again.');
+      const errorMessage = axiosError.response?.data.message || 
+        'There was a problem with your sign-up. Please try again.';
 
       toast({
         title: 'Sign Up Failed',
@@ -144,7 +150,7 @@ export default function SignUpForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Email</FormLabel>
-                  <Input {...field} name="email" />
+                  <Input {...field} />
                   <p className='text-muted text-gray-400 text-sm'>We will send you a verification code</p>
                   <FormMessage />
                 </FormItem>
@@ -157,7 +163,7 @@ export default function SignUpForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Password</FormLabel>
-                  <Input type="password" {...field} name="password" />
+                  <Input type="password" {...field} />
                   <FormMessage />
                 </FormItem>
               )}

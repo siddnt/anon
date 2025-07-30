@@ -1,6 +1,7 @@
 // here i am gonna modify some existing data types for next-auth
 // this is a special declaration file.
 import 'next-auth';
+import { DefaultSession } from 'next-auth';
 
 declare module 'next-auth' {
     // so i am modifying the session and user types, which are defined interfaces in next-auth, to include more of my custom properties

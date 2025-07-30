@@ -1,56 +1,70 @@
-import OpenAI from 'openai';
-import { NextResponse } from 'next/server';
+export const runtime = 'edge';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-// below is done for next js 13.4+ edge runtime, so that we can use streaming responses
-export const runtime = 'edge';  
-
-export async function POST(req: Request) {
+export async function POST() {
   try {
-    const prompt =
-      "Create a list of three open-ended and engaging questions formatted as a single string. Each question should be separated by '||'. These questions are for an anonymous social messaging platform, like Qooh.me, and should be suitable for a diverse audience. Avoid personal or sensitive topics, focusing instead on universal themes that encourage friendly interaction. For example, your output should be structured like this: 'What’s a hobby you’ve recently started?||If you could have dinner with any historical figure, who would it be?||What’s a simple thing that makes you happy?'. Ensure the questions are intriguing, foster curiosity, and contribute to a positive and welcoming conversational environment.";
-
-    const response = await openai.completions.create({
-      model: 'gpt-3.5-turbo-instruct',
-      max_tokens: 400,
-      stream: false, // Changed to false since we're not using streaming in this version
-      prompt,
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'llama3-8b-8192',
+        messages: [
+          {
+            role: 'user',
+            content: "Create exactly three open-ended and engaging questions for an anonymous social messaging platform. Return ONLY the three questions, each separated by '||'. Do not include any explanations, introductions, or additional text. Just the questions in this exact format: 'Question 1||Question 2||Question 3'. The questions should be suitable for a diverse audience and encourage friendly interaction."
+          }
+        ],
+        max_tokens: 400,
+        temperature: 0.7,
+      }),
     });
 
-    // Return the completion as a regular response
-    return NextResponse.json({ 
-      success: true, 
-      suggestions: response.choices[0].text.split('||') 
-    });
-  } catch (error) {
-    if (error instanceof OpenAI.APIError) {
-      // OpenAI API error handling
-      const { name, status, headers, message } = error;
-      return NextResponse.json({ name, status, headers, message }, { status });
-    } else {
-      // General error handling
-      console.error('An unexpected error occurred:', error);
-      throw error;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    const data = await response.json();
+    console.log('Groq API response:', data);
+    
+    let suggestions: string;
+    const content = data.choices[0].message.content.trim();
+    console.log('Raw content:', content);
+    
+    // Try to format the response for the AI library
+    if (content.includes('||')) {
+      suggestions = content;
+    } else {
+      // If no || separator, try to parse as individual lines and join with ||
+      const lines = content.split('\n').filter((line: string) => line.trim() && line.includes('?'));
+      if (lines.length >= 3) {
+        suggestions = lines.slice(0, 3)
+          .map((line: string) => line.trim().replace(/^\d+\.\s*/, '').replace(/^[-*]\s*/, ''))
+          .join('||');
+      } else {
+        // Use fallback suggestions
+        suggestions = "What's the best advice you've ever received?||If you could learn any skill instantly, what would it be?||What's a small thing that always makes you smile?";
+      }
+    }
+
+    // Return a streaming response compatible with the AI library
+    return new Response(suggestions, {
+      headers: {
+        'Content-Type': 'text/plain',
+      },
+    });
+
+  } catch (error) {
+    console.error('Error fetching suggestions:', error);
+    
+    // Fallback suggestions if API fails
+    const fallbackSuggestions = "What's the best advice you've ever received?||If you could learn any skill instantly, what would it be?||What's a small thing that always makes you smile?";
+
+    return new Response(fallbackSuggestions, {
+      headers: {
+        'Content-Type': 'text/plain',
+      },
+    });
   }
 }
-
-
-
-// I've updated your code to solve the import error. Here's what I did:
-
-// Removed the streaming approach - Since the Vercel AI SDK's API has changed significantly and the streaming functionality isn't working correctly with your current setup.
-
-// Simplified the implementation - Changed to a non-streaming approach that will:
-
-// Make a regular OpenAI API call (with stream: false)
-// Parse the response
-// Return the suggestions as a JSON array
-// Preserved your functionality - The code still:
-
-// Uses the same prompt
-// Splits the response at || to give you an array of suggestions
-// Returns a proper JSON response
-// This approach is simpler, more reliable, and avoids the compatibility issues with the streaming API. If you specifically need streaming functionality, you would need to update to the latest patterns from the Vercel AI SDK, which would require more extensive changes.

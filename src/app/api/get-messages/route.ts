@@ -3,43 +3,58 @@
    import dbConnect from '@/lib/dbConnect';
 import UserModel from '@/model/User';
 import mongoose from 'mongoose';
-import { User } from 'next-auth';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../(auth)/[...nextauth]/options';
+import { authOptions } from '../auth/[...nextauth]/options';
 
-export async function GET(request: Request) {
+export async function GET() {
   await dbConnect();
   const session = await getServerSession(authOptions);
-  const _user: User = session?.user; // actully we converted the user to string in the session, so we need to convert it back to object, so we can use it here.
-  // if you remember, we injected the user in the session, so we can use it.
-
-  if (!session || !_user) {
+  
+  if (!session || !session.user) {
     return Response.json(
       { success: false, message: 'Not authenticated' },
       { status: 401 }
     );
   }
-  const userId = new mongoose.Types.ObjectId(_user._id); // so here we are converting the user id to mongoose object id, so we can use it in the query. this is needed in aggreation pipelines, although string can be used in normal queries(find by id, and update etc), but not in aggregation pipelines.
-  try {
-    const user = await UserModel.aggregate([
-      { $match: { _id: userId } },
-      { $unwind: '$messages' }, // unwind the messages array to get each message as a separate document or object
-      { $sort: { 'messages.createdAt': -1 } },
-      { $group: { _id: '$_id', messages: { $push: '$messages' } } },
-    ]).exec();   
+  
+  const _user = session.user; // actully we converted the user to string in the session, so we need to convert it back to object, so we can use it here.
+  // if you remember, we injected the user in the session, so we can use it.
 
-    if (!user || user.length === 0) {
+  console.log('Session user:', _user);
+  console.log('User ID:', _user._id);
+
+  if (!_user._id) {
+    return Response.json(
+      { success: false, message: 'User ID not found in session' },
+      { status: 400 }
+    );
+  }
+
+  const userId = new mongoose.Types.ObjectId(_user._id); // so here we are converting the user id to mongoose object id, so we can use it in the query. this is needed in aggreation pipelines, although string can be used in normal queries(find by id, and update etc), but not in aggregation pipelines.
+  console.log('Converted userId:', userId);
+  try {
+    console.log('Finding user by ID:', userId);
+    
+    const user = await UserModel.findById(userId);
+    
+    console.log('User found:', user ? { _id: user._id, username: user.username, messagesLength: user.messages?.length } : 'No user found');
+
+    if (!user) {
       return Response.json(
         { message: 'User not found', success: false },
         { status: 404 }
       );
     }
 
+    // Get messages and sort them by creation date (newest first)
+    const messages = user.messages || [];
+    const sortedMessages = messages.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    console.log('Returning messages:', sortedMessages.length, 'messages found');
+
     return Response.json(
-      { messages: user[0].messages },
-      {
-        status: 200,
-      }
+      { messages: sortedMessages },
+      { status: 200 }
     );
   } catch (error) {
     console.error('An unexpected error occurred:', error);

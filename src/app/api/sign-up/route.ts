@@ -9,6 +9,10 @@ export async function POST(request: Request) {
 
   try {
     const { username, email, password } = await request.json();
+    
+    // Debug: Log the received data
+    console.log('Received signup data:', { username, email, password: '***' });
+    console.log('Request headers:', request.headers);
 
     const existingVerifiedUserByUsername = await UserModel.findOne({
       username,
@@ -16,6 +20,7 @@ export async function POST(request: Request) {
     });
 
     if (existingVerifiedUserByUsername) {
+      console.log('Username already taken:', username);
       return Response.json(
         {
           success: false, // cz your registration is not successful
@@ -26,7 +31,7 @@ export async function POST(request: Request) {
     }
 
     const existingUserByEmail = await UserModel.findOne({ email });
-    let verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
 
     if (existingUserByEmail) {
       if (existingUserByEmail.isVerified) {
@@ -42,7 +47,10 @@ export async function POST(request: Request) {
         existingUserByEmail.password = hashedPassword;
         existingUserByEmail.verifyCode = verifyCode;
         existingUserByEmail.verifyCodeExpiry = new Date(Date.now() + 3600000); // Set expiry to 1 hour from now
+        
+        console.log('Updating existing user:', existingUserByEmail.email);
         await existingUserByEmail.save(); 
+        console.log('Existing user updated with new verification code');
       }
     } else {
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -60,7 +68,17 @@ export async function POST(request: Request) {
         messages: [],
       });
 
-      await newUser.save();
+      console.log('About to save new user:', { username, email, verifyCode });
+      const savedUser = await newUser.save();
+      console.log('User saved successfully with ID:', savedUser._id);
+      console.log('User data:', {
+        id: savedUser._id,
+        username: savedUser.username,
+        email: savedUser.email,
+        isVerified: savedUser.isVerified,
+        verifyCode: savedUser.verifyCode,
+        verifyCodeExpiry: savedUser.verifyCodeExpiry
+      });
     }
 
     // Send verification email

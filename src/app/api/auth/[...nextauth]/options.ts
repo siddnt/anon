@@ -71,19 +71,23 @@ export const authOptions: NextAuthOptions = {
     // now to now doing db call eveytime, we need more data to be stored, so i modified the callbacks. so what info i taken user, i shifted it to token and then whateven info i got from token later, i shifted it to session, so that i can use it in my frontend, like user._id, user.isVerified, etc.
     async jwt({ token, user }) {
       if (user) {
+        console.log('JWT callback - User from authorize:', { _id: user._id, username: user.username });
         token._id = user._id?.toString(); // Convert ObjectId to string, withhout defining it as string, it will throw an error, so we did include modification in next-auth.d.ts. cz this user is coming from the authorize function above
         token.isVerified = user.isVerified;
         token.isAcceptingMessages = user.isAcceptingMessages;
         token.username = user.username;
+        console.log('JWT callback - Token after user inject:', { _id: token._id, username: token.username });
       }
       return token;
     },
     async session({ session, token }) {
       if (token) {
+        console.log('Session callback - Token received:', { _id: token._id, username: token.username });
         session.user._id = token._id;
         session.user.isVerified = token.isVerified;
         session.user.isAcceptingMessages = token.isAcceptingMessages;
         session.user.username = token.username;
+        console.log('Session callback - Final session user:', { _id: session.user._id, username: session.user.username });
       }
       return session;
     },
