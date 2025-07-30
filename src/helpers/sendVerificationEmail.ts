@@ -1,20 +1,25 @@
-import { resend } from "@/lib/resend";
+import { brevoApi } from "@/lib/brevo";
 import VerificationEmail from "../../email/VerificationEmail";
 import { ApiResponse } from '@/types/ApiResponse';
+import { render } from '@react-email/render';
 
 export async function sendVerificationEmail(
   email: string,
   username: string,
   verifyCode: string
-): Promise<ApiResponse> { // it will return ApiResponse type promise
+): Promise<ApiResponse> {
   try {
-    // below is sytax from docs of resend
-    await resend.emails.send({
-      from: 'Acme <onboarding@resend.dev>', // this is the sender email, you can change it to your email
-      to: email,
+    // Render the React email component to HTML
+    const emailHtml = await render(VerificationEmail({ username, otp: verifyCode }));
+    
+    const sendSmtpEmail = {
+      to: [{ email: email, name: username }],
+      sender: { name: "Anon App", email: "unwantedid2005@gmail.com" },
       subject: 'Anon Verification Code',
-      react: VerificationEmail({ username, otp: verifyCode }),
-    });
+      htmlContent: emailHtml,
+    };
+    
+    await brevoApi.sendTransacEmail(sendSmtpEmail);
     return { success: true, message: 'Verification email sent successfully.' };
   } catch (emailError) {
     console.error('Error sending verification email:', emailError);

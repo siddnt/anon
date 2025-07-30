@@ -28,6 +28,7 @@ export default function SignInForm() {
       identifier: '',
       password: '',
     },
+    mode: 'onChange',
   });
 
   const { toast } = useToast();
@@ -76,7 +77,7 @@ export default function SignInForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Email/Username</FormLabel>
-                  <Input {...field} />
+                  <Input {...field} value={field.value || ''} />
                   <FormMessage />
                 </FormItem>
               )}
@@ -87,7 +88,7 @@ export default function SignInForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Password</FormLabel>
-                  <Input type="password" {...field} />
+                  <Input type="password" {...field} value={field.value || ''} />
                   <FormMessage />
                 </FormItem>
               )}

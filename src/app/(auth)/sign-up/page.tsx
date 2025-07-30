@@ -40,6 +40,7 @@ export default function SignUpForm() {
       email: '',
       password: '',
     },
+    mode: 'onChange', // This ensures form validation happens on every change
   }); // this is react-hook-form's useForm hook, which initializes the form with default values and sets up validation using zod
 
   useEffect(() => { // This effect runs whenever debouncedUsername changes, not username directly, which helps to avoid unnecessary API calls while the user is typing. OG bhai OG. and checks if the username is unique by making an API call to the server.
@@ -123,9 +124,11 @@ export default function SignUpForm() {
                   <FormLabel>Username</FormLabel>
                   <Input
                     {...field}
+                    value={field.value || ''} // Ensure controlled component
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      field.onChange(e);
-                      setUsername(e.target.value);
+                      const value = e.target.value;
+                      field.onChange(value);
+                      setUsername(value);
                     }}
                   />
                   {isCheckingUsername && <Loader2 className="animate-spin" />}
@@ -150,7 +153,7 @@ export default function SignUpForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Email</FormLabel>
-                  <Input {...field} />
+                  <Input {...field} value={field.value || ''} />
                   <p className='text-muted text-gray-400 text-sm'>We will send you a verification code</p>
                   <FormMessage />
                 </FormItem>
@@ -163,7 +166,7 @@ export default function SignUpForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Password</FormLabel>
-                  <Input type="password" {...field} />
+                  <Input type="password" {...field} value={field.value || ''} />
                   <FormMessage />
                 </FormItem>
               )}
