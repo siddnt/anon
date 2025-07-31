@@ -4,7 +4,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import {
   Form,
   FormField,
@@ -18,9 +18,19 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
 import { signInSchema } from '@/schemas/signInSchema';
+import { useEffect, useState } from 'react';
 
 export default function SignInForm() {
   const router = useRouter();
+  const { data: session, status } = useSession();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // If user is already authenticated, redirect to dashboard
+  useEffect(() => {
+    if (status === 'authenticated' && session) {
+      router.replace('/dashboard');
+    }
+  }, [session, status, router]);
 
   const form = useForm<z.infer<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
@@ -33,30 +43,39 @@ export default function SignInForm() {
 
   const { toast } = useToast();
   const onSubmit = async (data: z.infer<typeof signInSchema>) => {
-    const result = await signIn('credentials', { // this signIn function is provided by next-auth, which handles the sign-in process, now no need of axios or api calls. 
-      redirect: false, // we don't want to redirect immediately, we want to handle it ourselves
-      identifier: data.identifier, // identifier can be either email or username, so we use the same field for both, we already handled this on backend. 
-      password: data.password,
-    });
+    setIsSubmitting(true);
+    try {
+      const result = await signIn('credentials', { // this signIn function is provided by next-auth, which handles the sign-in process, now no need of axios or api calls. 
+        redirect: false, // we don't want to redirect immediately, we want to handle it ourselves
+        identifier: data.identifier, // identifier can be either email or username, so we use the same field for both, we already handled this on backend. 
+        password: data.password,
+      });
 
-    if (result?.error) {
-      if (result.error === 'CredentialsSignin') {
+      if (result?.error) {
+        if (result.error === 'CredentialsSignin') {
+          toast({
+            title: 'Login Failed',
+            description: 'Incorrect username or password',
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: 'Error',
+            description: result.error,
+            variant: 'destructive',
+          });
+        }
+      } else if (result?.ok) {
+        // If sign-in was successful, redirect to dashboard
         toast({
-          title: 'Login Failed',
-          description: 'Incorrect username or password',
-          variant: 'destructive',
+          title: 'Success',
+          description: 'Signed in successfully',
         });
-      } else {
-        toast({
-          title: 'Error',
-          description: result.error,
-          variant: 'destructive',
-        });
+        // Use window.location for a hard redirect to ensure state refresh
+        window.location.href = '/dashboard';
       }
-    }
-
-    if (result?.url) {
-      router.replace('/dashboard');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -105,8 +124,9 @@ export default function SignInForm() {
             <Button 
               className='w-full bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 py-3 rounded-lg font-medium transition-colors' 
               type="submit"
+              disabled={isSubmitting}
             >
-              Sign In
+              {isSubmitting ? 'Signing In...' : 'Sign In'}
             </Button>
           </form>
         </Form>

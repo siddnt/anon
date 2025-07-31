@@ -100,4 +100,5 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/sign-in', // when you write this route, now you do not have to even design this page, NextAuth.js will automatically create a sign-in page for you
   },
+  debug: process.env.NODE_ENV === 'development', // Enable debug in development
 };
