@@ -74,6 +74,9 @@ export default function SendMessage() {
 
   const form = useForm<z.infer<typeof messageSchema>>({
     resolver: zodResolver(messageSchema),
+    defaultValues: {
+      content: '', // Provide default empty string
+    },
   });
 
   const messageContent = form.watch('content');

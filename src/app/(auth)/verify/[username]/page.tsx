@@ -27,6 +27,9 @@ export default function VerifyAccount() {
   const { toast } = useToast();
   const form = useForm<z.infer<typeof verifySchema>>({
     resolver: zodResolver(verifySchema),
+    defaultValues: {
+      code: '', // Provide default empty string to avoid uncontrolled to controlled warning
+    },
   });
 
   const onSubmit = async (data: z.infer<typeof verifySchema>) => {
