@@ -6,8 +6,9 @@ import mongoose from 'mongoose';
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { messageId: string } }
+  context: { params: Promise<{ messageId: string }> }
 ) {
+  const params = await context.params;
   const messageId = params.messageId;
   await dbConnect();
 

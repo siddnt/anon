@@ -4,7 +4,7 @@
 import React from 'react';
 import axios, { AxiosError } from 'axios';
 import dayjs from 'dayjs';
-import { Trash2, Calendar, MessageCircle } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { Message } from '@/model/User';
 import { Card, CardContent } from '@/components/ui/card';
 import {
