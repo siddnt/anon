@@ -14,7 +14,10 @@ export async function sendVerificationEmail(
     
     const sendSmtpEmail = {
       to: [{ email: email, name: username }],
-      sender: { name: "Anon App", email: "unwantedid2005@gmail.com" },
+      sender: { 
+        name: process.env.BREVO_SENDER_NAME || "Anon App", 
+        email: process.env.BREVO_SENDER_EMAIL || "sirius444mail@gmail.com" 
+      },
       subject: 'Anon Verification Code',
       htmlContent: emailHtml,
     };
