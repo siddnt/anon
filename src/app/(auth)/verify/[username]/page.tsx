@@ -55,13 +55,13 @@ export default function VerifyAccount() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
+    <div className="flex justify-center items-center min-h-screen py-12 px-4">
+      <div className="w-full max-w-md p-8 space-y-8 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
         <div className="text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-6">
+          <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-6 text-black dark:text-white">
             Verify Your Account
           </h1>
-          <p className="mb-4">Enter the verification code sent to your email</p>
+          <p className="mb-4 text-gray-600 dark:text-gray-400">Enter the verification code sent to your email</p>
         </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -70,13 +70,21 @@ export default function VerifyAccount() {
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Verification Code</FormLabel>
-                  <Input {...field} />
+                  <FormLabel className="text-gray-700 dark:text-gray-300">Verification Code</FormLabel>
+                  <Input 
+                    {...field} 
+                    className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-black dark:focus:border-white focus:ring-black dark:focus:ring-white"
+                  />
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit">Verify</Button>
+            <Button 
+              type="submit"
+              className="w-full bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200"
+            >
+              Verify
+            </Button>
           </form>
         </Form>
       </div>

@@ -4,9 +4,9 @@
 import React from 'react';
 import axios, { AxiosError } from 'axios';
 import dayjs from 'dayjs';
-import { X } from 'lucide-react';
+import { Trash2, Calendar, MessageCircle } from 'lucide-react';
 import { Message } from '@/model/User';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,40 +52,50 @@ export function MessageCard({ message, onMessageDelete }: MessageCardProps) {
   };
 
   return (
-    <Card className="card-bordered">
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <CardTitle>{message.content}</CardTitle>
+    <Card className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-md transition-shadow duration-200">
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex-1">
+            <p className="text-black dark:text-white font-medium text-base leading-relaxed">
+              {message.content}
+            </p>
+          </div>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant='destructive'>
-                <X className="w-5 h-5" />
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="ml-3 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 h-8 w-8"
+              >
+                <Trash2 className="w-4 h-4" />
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
               <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete
-                  this message.
+                <AlertDialogTitle className="text-black dark:text-white">Delete Message?</AlertDialogTitle>
+                <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
+                  This action cannot be undone. This will permanently delete this message.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>
+                <AlertDialogCancel className="border-gray-300 dark:border-gray-600 text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700">
                   Cancel
                 </AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteConfirm}>
-                  Continue
+                <AlertDialogAction 
+                  onClick={handleDeleteConfirm}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  Delete
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
         </div>
-        <div className="text-sm">
-          {dayjs(message.createdAt).format('MMM D, YYYY h:mm A')}
+
+        <div className="text-sm text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700 pt-3">
+          {dayjs(message.createdAt).format('MMM D, YYYY [at] h:mm A')}
         </div>
-      </CardHeader>
-      <CardContent></CardContent>
+      </CardContent>
     </Card>
   );
 }

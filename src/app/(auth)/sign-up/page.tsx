@@ -106,13 +106,13 @@ export default function SignUpForm() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-800">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
+    <div className="flex justify-center items-center min-h-screen py-12 px-4">
+      <div className="w-full max-w-md p-8 space-y-8 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700">
         <div className="text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-6">
-            Join True Feedback
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">
+            Create Account
           </h1>
-          <p className="mb-4">Sign up to start your anonymous adventure</p>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">Join our anonymous feedback platform</p>
         </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6"> {/* handleSubmit is a function provided by react-hook-form that handles the form submission and validation  and we calling our onSubmit function here */}
@@ -121,23 +121,24 @@ export default function SignUpForm() {
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username</FormLabel>
+                  <FormLabel className="text-gray-700 dark:text-gray-300 font-medium">Username</FormLabel>
                   <Input
                     {...field}
                     value={field.value || ''} // Ensure controlled component
+                    className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-black dark:focus:border-white focus:ring-black dark:focus:ring-white"
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       const value = e.target.value;
                       field.onChange(value);
                       setUsername(value);
                     }}
                   />
-                  {isCheckingUsername && <Loader2 className="animate-spin" />}
+                  {isCheckingUsername && <Loader2 className="animate-spin text-black dark:text-white" />}
                   {!isCheckingUsername && usernameMessage && (
                     <p
                       className={`text-sm ${
                         usernameMessage === 'Username is unique'
-                          ? 'text-green-500'
-                          : 'text-red-500'
+                          ? 'text-green-600 dark:text-green-400'
+                          : 'text-red-600 dark:text-red-400'
                       }`}
                     >
                       {usernameMessage}
@@ -152,9 +153,13 @@ export default function SignUpForm() {
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <Input {...field} value={field.value || ''} />
-                  <p className='text-muted text-gray-400 text-sm'>We will send you a verification code</p>
+                  <FormLabel className="text-gray-700 dark:text-gray-300 font-medium">Email</FormLabel>
+                  <Input 
+                    {...field} 
+                    value={field.value || ''} 
+                    className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-black dark:focus:border-white focus:ring-black dark:focus:ring-white"
+                  />
+                  <p className='text-gray-500 dark:text-gray-400 text-sm'>We will send you a verification code</p>
                   <FormMessage />
                 </FormItem>
               )}
@@ -165,28 +170,37 @@ export default function SignUpForm() {
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <Input type="password" {...field} value={field.value || ''} />
+                  <FormLabel className="text-gray-700 dark:text-gray-300 font-medium">Password</FormLabel>
+                  <Input 
+                    type="password" 
+                    {...field} 
+                    value={field.value || ''} 
+                    className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-black dark:focus:border-white focus:ring-black dark:focus:ring-white"
+                  />
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit" className='w-full' disabled={isSubmitting}>
+            <Button 
+              type="submit" 
+              className='w-full bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 py-3 rounded-lg font-medium transition-colors' 
+              disabled={isSubmitting}
+            >
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Please wait
                 </>
               ) : (
-                'Sign Up'
+                'Create Account'
               )}
             </Button>
           </form>
         </Form>
-        <div className="text-center mt-4">
-          <p>
+        <div className="text-center mt-6">
+          <p className="text-gray-600 dark:text-gray-400">
             Already a member?{' '}
-            <Link href="/sign-in" className="text-blue-600 hover:text-blue-800">
+            <Link href="/sign-in" className="text-black dark:text-white hover:text-gray-700 dark:hover:text-gray-300 font-medium underline">
               Sign in
             </Link>
           </p>

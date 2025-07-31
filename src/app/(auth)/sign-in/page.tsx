@@ -61,13 +61,13 @@ export default function SignInForm() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-800">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
+    <div className="flex justify-center items-center min-h-screen py-12 px-4">
+      <div className="w-full max-w-md p-8 space-y-8 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700">
         <div className="text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-6">
-            Welcome Back to True Feedback
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">
+            Welcome Back
           </h1>
-          <p className="mb-4">Sign in to continue your secret conversations</p>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">Sign in to continue your anonymous conversations</p>
         </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -76,8 +76,12 @@ export default function SignInForm() {
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email/Username</FormLabel>
-                  <Input {...field} value={field.value || ''} />
+                  <FormLabel className="text-gray-700 dark:text-gray-300 font-medium">Email/Username</FormLabel>
+                  <Input 
+                    {...field} 
+                    value={field.value || ''} 
+                    className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-black dark:focus:border-white focus:ring-black dark:focus:ring-white"
+                  />
                   <FormMessage />
                 </FormItem>
               )}
@@ -87,19 +91,29 @@ export default function SignInForm() {
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <Input type="password" {...field} value={field.value || ''} />
+                  <FormLabel className="text-gray-700 dark:text-gray-300 font-medium">Password</FormLabel>
+                  <Input 
+                    type="password" 
+                    {...field} 
+                    value={field.value || ''} 
+                    className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-black dark:focus:border-white focus:ring-black dark:focus:ring-white"
+                  />
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button className='w-full' type="submit">Sign In</Button>
+            <Button 
+              className='w-full bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 py-3 rounded-lg font-medium transition-colors' 
+              type="submit"
+            >
+              Sign In
+            </Button>
           </form>
         </Form>
-        <div className="text-center mt-4">
-          <p>
+        <div className="text-center mt-6">
+          <p className="text-gray-600 dark:text-gray-400">
             Not a member yet?{' '}
-            <Link href="/sign-up" className="text-blue-600 hover:text-blue-800">
+            <Link href="/sign-up" className="text-black dark:text-white hover:text-gray-700 dark:hover:text-gray-300 font-medium underline">
               Sign up
             </Link>
           </p>

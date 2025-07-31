@@ -2,13 +2,15 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import AuthProvider from '../context/AuthProvider';
+import { ThemeProvider } from '../context/ThemeProvider';
 import { Toaster } from '@/components/ui/toaster';
+import ThemeScript from '@/components/ThemeScript';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'True Feedback',
-  description: 'Real feedback from real people.',
+  title: 'Anon',
+  description: 'Anonymous feedback platform for honest communication.',
 };
 
 interface RootLayoutProps {
@@ -17,13 +19,16 @@ interface RootLayoutProps {
 
 export default async function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en" >
-      <AuthProvider>
-        <body className={inter.className}>
-          {children}
-          <Toaster />
-        </body>
-      </AuthProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} bg-white dark:bg-gray-900 text-black dark:text-white transition-colors`} suppressHydrationWarning>
+        <ThemeScript />
+        <AuthProvider>
+          <ThemeProvider>
+            {children}
+            <Toaster />
+          </ThemeProvider>
+        </AuthProvider>
+      </body>
     </html>
   );
 }
