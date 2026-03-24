@@ -6,13 +6,13 @@ import mongoose from 'mongoose';
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { messageId: string } }
+  { params }: { params: Promise<{ messageId: string }> }
 ) {
-  const messageId = params.messageId;
+  const { messageId } = await params;
   await dbConnect();
 
   const session = await getServerSession(authOptions);
-  
+
   if (!session || !session.user) {
     return Response.json(
       { success: false, message: 'Not authenticated' },
