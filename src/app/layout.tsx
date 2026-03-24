@@ -11,7 +11,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'VibeCheck',
+  title: 'Anonmolous',
   description: 'Get anonymous messages without the weird vibes.',
 };
 

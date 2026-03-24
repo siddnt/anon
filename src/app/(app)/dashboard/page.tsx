@@ -231,7 +231,7 @@ function UserDashboard() {
             </a>
             <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-text-main hover:bg-gray-50 font-medium text-sm transition-colors cursor-pointer">
               <Settings size={18} />
-              <span>Settings</span>
+              <span>Accept Messages</span>
               <div className="ml-auto">
                 <Switch
                   {...register('acceptMessages')}
@@ -244,7 +244,7 @@ function UserDashboard() {
           </nav>
 
           {/* Link Share */}
-          <div className="mt-auto bg-gray-50 rounded-2xl p-4 border border-gray-100">
+          <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
             <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider mb-2">Your Link</h3>
             <div className="bg-white rounded-xl px-3 py-2.5 mb-3 shadow-inner-soft border border-gray-100 flex items-center justify-between gap-2">
               <span className="text-text-main font-medium truncate text-xs">{profileUrl.replace(/^https?:\/\//, '')}</span>
