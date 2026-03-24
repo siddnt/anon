@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     const updatedUser = await UserModel.findByIdAndUpdate(
       userId, 
       { isAcceptingMessages: acceptMessages },
-      { new: true }
+      { new: true } //The object { new: true } is commonly used as an option in MongoDB queries with Mongoose, a popular ODM (Object Data Modeling) library for Node.js. When passed to methods like findOneAndUpdate, this option tells Mongoose to return the updated document rather than the original document before the update.
     );
 
     if (!updatedUser) {

@@ -1,46 +1,49 @@
 'use client';
 
 import { MessageCard } from '@/components/MessageCard';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/components/ui/use-toast';
 import { Message } from '@/model/User';
 import { ApiResponse } from '@/types/ApiResponse';
 import { zodResolver } from '@hookform/resolvers/zod';
 import axios, { AxiosError } from 'axios';
-import { Loader2, RefreshCcw } from 'lucide-react';
+import { Loader2, RefreshCcw, Copy, Share2, Settings, Inbox, Upload } from 'lucide-react';
 import { User } from 'next-auth';
 import { useSession } from 'next-auth/react';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { AcceptMessageSchema } from '@/schemas/acceptMessageSchema';
+import Image from 'next/image';
 
 function UserDashboard() {
-  const [messages, setMessages] = useState<Message[]>([]); // difining data type for messages, which is an array of Message objects
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSwitchLoading, setIsSwitchLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { toast } = useToast();
 
   const handleDeleteMessage = (messageId: string) => {
     setMessages(messages.filter((message) => message._id !== messageId));
-  }; // by this we are updating at the ui level, not in the db. 
+  };
 
-  const { data: session } = useSession(); // docs syntax
+  const { data: session } = useSession();
 
   const form = useForm({
-    resolver: zodResolver(AcceptMessageSchema), // this schema is used to validate the acceptMessages switch state, defined in src/schemas/acceptMessageSchema.ts
+    resolver: zodResolver(AcceptMessageSchema),
   });
 
-  const { register, watch, setValue } = form; // all things stored inside form.  
-  const acceptMessages = watch('acceptMessages'); // you have to inject this watch, kis cheez ko watch karne waala hu. 
+  const { register, watch, setValue } = form;
+  const acceptMessages = watch('acceptMessages');
 
-  const fetchAcceptMessages = useCallback(async () => { // useCallback is used to memoize the function, so it doesn't change on every render, which is useful for performance optimization.
+  const fetchAcceptMessages = useCallback(async () => {
     setIsSwitchLoading(true);
     try {
       const response = await axios.get<ApiResponse>('/api/accept-messages');
-      setValue('acceptMessages', response.data.isAcceptingMessages || false); // setting the value of acceptMessages switch based on the response from the server on ui, with fallback to false
+      setValue('acceptMessages', response.data.isAcceptingMessages || false);
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse>;
       toast({
@@ -84,16 +87,24 @@ function UserDashboard() {
     [setIsLoading, setMessages, toast]
   );
 
-  // Fetch initial state from the server
+  const fetchProfileImage = useCallback(async () => {
+    try {
+      const response = await axios.get('/api/profile-image');
+      if (response.data.profileImage) {
+        setProfileImage(response.data.profileImage);
+      }
+    } catch {
+      // No profile image set yet, that's fine
+    }
+  }, []);
+
   useEffect(() => {
-    if (!session || !session.user) return; 
-
+    if (!session || !session.user) return;
     fetchMessages();
-
     fetchAcceptMessages();
-  }, [session, setValue, toast, fetchAcceptMessages, fetchMessages]);
+    fetchProfileImage();
+  }, [session, setValue, toast, fetchAcceptMessages, fetchMessages, fetchProfileImage]);
 
-  // Handle switch change
   const handleSwitchChange = async () => {
     try {
       const response = await axios.post<ApiResponse>('/api/accept-messages', {
@@ -116,82 +127,198 @@ function UserDashboard() {
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'File too large', description: 'Max 5MB', variant: 'destructive' });
+      return;
+    }
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const response = await axios.post('/api/upload-profile-image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setProfileImage(response.data.imageUrl);
+      toast({ title: 'Profile picture updated!' });
+    } catch (error) {
+      const axiosError = error as AxiosError<ApiResponse>;
+      toast({
+        title: 'Upload failed',
+        description: axiosError.response?.data.message ?? 'Try again',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   if (!session || !session.user) {
     return <div></div>;
   }
 
   const { username } = session.user as User;
-
-  // as this a client component, we can access window object to get the base URL of the application
-  const baseUrl = `${window.location.protocol}//${window.location.host}`; // http or https + host name
-  // Construct the profile URL using the base URL and username
+  const baseUrl = `${window.location.protocol}//${window.location.host}`;
   const profileUrl = `${baseUrl}/u/${username}`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(profileUrl);
+    setCopied(true);
     toast({
       title: 'URL Copied!',
       description: 'Profile URL has been copied to clipboard.',
     });
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className="my-8 mx-4 md:mx-8 lg:mx-auto p-6 bg-white rounded w-full max-w-6xl">
-      <h1 className="text-4xl font-bold mb-4">User Dashboard</h1>
+    <div className="bg-background-light min-h-screen flex flex-col md:flex-row overflow-x-hidden">
+      {/* Sidebar */}
+      <aside className="w-full md:w-[260px] md:min-h-screen bg-white border-r border-gray-100 flex flex-col shrink-0">
+        <div className="p-5 flex flex-col h-full gap-6">
+          {/* Profile Section */}
+          <div className="flex items-center gap-3">
+            <div
+              className="relative group cursor-pointer"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {profileImage ? (
+                <Image
+                  src={profileImage}
+                  alt="Profile"
+                  width={44}
+                  height={44}
+                  className="w-11 h-11 rounded-full object-cover border-2 border-white shadow-sm"
+                />
+              ) : (
+                <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-primary/20 to-accent-blue/20 flex items-center justify-center text-xl border-2 border-white shadow-sm">
+                  {username?.charAt(0)?.toUpperCase() || '?'}
+                </div>
+              )}
+              <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                {isUploading ? (
+                  <Loader2 className="w-4 h-4 text-white animate-spin" />
+                ) : (
+                  <Upload className="w-4 h-4 text-white" />
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageUpload}
+              />
+            </div>
+            <div className="min-w-0">
+              <h1 className="font-bold text-base text-text-main leading-none mb-0.5 truncate">
+                {username}
+              </h1>
+              <p className="text-xs text-text-muted font-medium">Free Plan</p>
+            </div>
+          </div>
 
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold mb-2">Copy Your Unique Link</h2>{' '}
-        <div className="flex items-center">
-          <input
-            type="text"
-            value={profileUrl}
-            disabled
-            className="input input-bordered w-full p-2 mr-2"
-          />
-          <Button onClick={copyToClipboard}>Copy</Button>
+          {/* Nav Links */}
+          <nav className="flex flex-col gap-1">
+            <a className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-primary/10 text-primary font-semibold text-sm" href="#">
+              <Inbox size={18} />
+              Inbox
+            </a>
+            <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-text-main hover:bg-gray-50 font-medium text-sm transition-colors cursor-pointer">
+              <Settings size={18} />
+              <span>Settings</span>
+              <div className="ml-auto">
+                <Switch
+                  {...register('acceptMessages')}
+                  checked={acceptMessages}
+                  onCheckedChange={handleSwitchChange}
+                  disabled={isSwitchLoading}
+                />
+              </div>
+            </div>
+          </nav>
+
+          {/* Link Share */}
+          <div className="mt-auto bg-gray-50 rounded-2xl p-4 border border-gray-100">
+            <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider mb-2">Your Link</h3>
+            <div className="bg-white rounded-xl px-3 py-2.5 mb-3 shadow-inner-soft border border-gray-100 flex items-center justify-between gap-2">
+              <span className="text-text-main font-medium truncate text-xs">{profileUrl.replace(/^https?:\/\//, '')}</span>
+              <Copy size={14} className="text-text-muted shrink-0" />
+            </div>
+            <button
+              onClick={copyToClipboard}
+              className="btn-squish w-full bg-primary hover:bg-primary-hover text-white font-bold text-sm py-2.5 px-4 rounded-full shadow-plush flex items-center justify-center gap-2 transition-all"
+            >
+              <Share2 size={15} />
+              {copied ? 'Copied!' : 'Copy Link'}
+            </button>
+          </div>
         </div>
-      </div>
+      </aside>
 
-      <div className="mb-4">
-        <Switch
-          {...register('acceptMessages')}
-          checked={acceptMessages}
-          onCheckedChange={handleSwitchChange}
-          disabled={isSwitchLoading}
-        />
-        <span className="ml-2">
-          Accept Messages: {acceptMessages ? 'On' : 'Off'}
-        </span>
-      </div>
-      <Separator />
+      {/* Main Content */}
+      <main className="flex-1 p-5 md:p-8 lg:p-10 overflow-y-auto w-full max-w-[1100px] mx-auto">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8">
+          <div>
+            <h2 className="font-extrabold text-2xl md:text-3xl text-text-main tracking-tight mb-1">
+              Your Messages
+            </h2>
+            <p className="text-text-muted font-medium text-sm">
+              {messages.length > 0
+                ? `${messages.length} anonymous note${messages.length > 1 ? 's' : ''} waiting for you.`
+                : 'No messages yet. Share your link!'}
+            </p>
+          </div>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              fetchMessages(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-sm border border-gray-100 text-text-main font-semibold text-sm hover:bg-gray-50 transition-colors self-start"
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCcw className="h-4 w-4" />
+            )}
+            Refresh
+          </button>
+        </header>
 
-      <Button
-        className="mt-4"
-        variant="outline"
-        onClick={(e) => {
-          e.preventDefault();
-          fetchMessages(true);
-        }}
-      >
-        {isLoading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <RefreshCcw className="h-4 w-4" />
-        )}
-      </Button>
-      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Message Grid */}
         {messages.length > 0 ? (
-          messages.map((message, index) => (
-            <MessageCard
-              key={message._id as string || index}
-              message={message}
-              onMessageDelete={handleDeleteMessage}
-            />
-          ))
+          <div className="masonry-grid">
+            {messages.map((message, index) => (
+              <div key={message._id as string || index} className="masonry-item">
+                <MessageCard
+                  message={message}
+                  onMessageDelete={handleDeleteMessage}
+                />
+              </div>
+            ))}
+          </div>
         ) : (
-          <p>No messages to display.</p>
+          <div className="flex flex-col items-center justify-center h-[350px] text-center max-w-sm mx-auto">
+            <div className="w-16 h-16 mb-5 rounded-full bg-primary/10 flex items-center justify-center text-3xl">
+              📭
+            </div>
+            <h3 className="font-bold text-xl text-text-main mb-2">It&apos;s quiet...</h3>
+            <p className="text-text-muted text-sm font-medium mb-6">Share your link on your socials to get the party started!</p>
+            <button
+              onClick={copyToClipboard}
+              className="btn-squish bg-primary text-white font-bold text-sm py-2.5 px-6 rounded-full shadow-plush flex items-center gap-2"
+            >
+              <Share2 size={16} />
+              Share Link Now
+            </button>
+          </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

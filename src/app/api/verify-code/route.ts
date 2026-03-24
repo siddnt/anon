@@ -55,3 +55,14 @@ export async function POST(request: Request) {
     );
   }
 }
+
+  /*
+in this file, also is request is the same thing ?
+
+Yes, in this file, request is the same thing—it is the Web API Request object automatically provided by Next.js to your API route handler.
+
+It contains all information about the incoming HTTP request.
+In this case, you use await request.json() to extract the JSON body sent in a POST request.
+Summary:
+request always refers to the incoming HTTP request object, whether you use request.url for query/search params (GET) or request.json() for body data (POST).
+  */

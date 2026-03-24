@@ -1,14 +1,19 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Plus_Jakarta_Sans } from 'next/font/google';
+import Script from 'next/script';
 import './globals.css';
 import AuthProvider from '../context/AuthProvider';
 import { Toaster } from '@/components/ui/toaster';
 
-const inter = Inter({ subsets: ['latin'] });
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-display',
+});
 
 export const metadata: Metadata = {
-  title: 'True Feedback',
-  description: 'Real feedback from real people.',
+  title: 'VibeCheck',
+  description: 'Get anonymous messages without the weird vibes.',
 };
 
 interface RootLayoutProps {
@@ -17,9 +22,16 @@ interface RootLayoutProps {
 
 export default async function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en" >
+    <html lang="en">
+      <head>
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <AuthProvider>
-        <body className={inter.className}>
+        <body className={`${plusJakartaSans.className} antialiased`}>
           {children}
           <Toaster />
         </body>
@@ -27,5 +39,3 @@ export default async function RootLayout({ children }: RootLayoutProps) {
     </html>
   );
 }
-// This layout wraps the entire application with the AuthProvider, which provides authentication context to all components.
-// The Toaster component is included to show notifications throughout the app.

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import {Schema, Document} from "mongoose"; // document is imported also , cz now we are using typescript
+import { Schema, Document } from "mongoose"; // document is imported also , cz now we are using typescript
 
 // now whenver we use ts, we define types - for that we use interface
 export interface Message extends Document {
@@ -23,11 +23,12 @@ export interface User extends Document {
   username: string;
   email: string;
   password: string;
-  verifyCode: string; // to verify the user, stored in the database
-  verifyCodeExpiry: Date; 
+  verifyCode: string;
+  verifyCodeExpiry: Date;
   isVerified: boolean;
-  isAcceptingMessages: boolean; // whether the user is accepting messages or not
+  isAcceptingMessages: boolean;
   messages: Message[];
+  profileImage: string;
 }
 
 // Updated User schema
@@ -63,6 +64,10 @@ const UserSchema: Schema<User> = new mongoose.Schema({
   isAcceptingMessages: {
     type: Boolean,
     default: true,
+  },
+  profileImage: {
+    type: String,
+    default: '',
   },
   messages: [MessageSchema],
 });

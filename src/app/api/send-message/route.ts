@@ -42,3 +42,18 @@ export async function POST(request: Request) {
     );
   }
 }
+
+  /*
+  Does Mongoose query work without .exec()?
+
+  Yes, it usually works without `.exec()` as well.
+  Mongoose queries like `UserModel.findOne({ username })` return a thenable object, so you can use `await` or `.then()` directly.
+
+  However, using `.exec()` is recommended for clarity and consistency, especially in complex queries or when chaining multiple query helpers.
+  It guarantees you get a real Promise and avoids subtle bugs in some edge cases.
+
+  Summary:
+  - `await UserModel.findOne({ username })` works.
+  - `await UserModel.findOne({ username }).exec()` is the recommended, explicit way.
+  Both will return the user document.
+  */

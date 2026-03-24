@@ -4,19 +4,14 @@ import React, { useState } from 'react';
 import axios, { AxiosError } from 'axios';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { CardHeader, CardContent, Card } from '@/components/ui/card';
+import { Loader2, Dice5, Send } from 'lucide-react';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
 import * as z from 'zod';
 import { ApiResponse } from '@/types/ApiResponse';
@@ -40,6 +35,7 @@ export default function SendMessage() {
   const [suggestedMessages, setSuggestedMessages] = useState<string>(initialMessageString);
   const [isSuggestLoading, setIsSuggestLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSent, setIsSent] = useState(false);
 
   const form = useForm<z.infer<typeof messageSchema>>({
     resolver: zodResolver(messageSchema),
@@ -66,6 +62,7 @@ export default function SendMessage() {
         variant: 'default',
       });
       form.reset({ ...form.getValues(), content: '' });
+      setIsSent(true);
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse>;
       toast({
@@ -99,91 +96,135 @@ export default function SendMessage() {
     } catch (error) {
       console.error('Error fetching messages:', error);
       setError('Failed to fetch suggestions');
-      // Use fallback suggestions
       setSuggestedMessages(initialMessageString);
     } finally {
       setIsSuggestLoading(false);
     }
   };
 
-  return (
-    <div className="container mx-auto my-8 p-6 bg-white rounded max-w-4xl">
-      <h1 className="text-4xl font-bold mb-6 text-center">
-        Public Profile Link
-      </h1>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="content"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Send Anonymous Message to @{username}</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Write your anonymous message here"
-                    className="resize-none"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <div className="flex justify-center">
-            {isLoading ? (
-              <Button disabled>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Please wait
-              </Button>
-            ) : (
-              <Button type="submit" disabled={isLoading || !messageContent}>
-                Send It
-              </Button>
-            )}
-          </div>
-        </form>
-      </Form>
+  const handleSendAnother = () => {
+    setIsSent(false);
+    form.reset({ content: '' });
+  };
 
-      <div className="space-y-4 my-8">
-        <div className="space-y-2">
-          <Button
-            onClick={fetchSuggestedMessages}
-            className="my-4"
-            disabled={isSuggestLoading}
-          >
-            Suggest Messages
-          </Button>
-          <p>Click on any message below to select it.</p>
-        </div>
-        <Card>
-          <CardHeader>
-            <h3 className="text-xl font-semibold">Messages</h3>
-          </CardHeader>
-          <CardContent className="flex flex-col space-y-4">
-            {error ? (
-              <p className="text-red-500">{error}</p>
-            ) : (
-              parseStringMessages(suggestedMessages).map((message, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className="mb-2"
-                  onClick={() => handleMessageClick(message)}
+  return (
+    <div className="bg-gradient-shift min-h-screen flex items-center justify-center p-4 text-text-main antialiased overflow-hidden">
+      <div className="relative w-full max-w-lg perspective-1000">
+        <div
+          className={`relative w-full transition-transform duration-700 transform-style-3d ${isSent ? 'rotate-y-180' : ''}`}
+          style={{ minHeight: '550px' }}
+        >
+          {/* ===== FRONT: Message Input ===== */}
+          <div className="absolute inset-0 w-full bg-white rounded-2xl backface-hidden flex flex-col items-center pt-14 px-6 pb-6 border border-gray-100 shadow-card">
+            {/* Avatar */}
+            <div className="absolute -top-10 left-1/2 transform -translate-x-1/2">
+              <div className="w-20 h-20 rounded-full border-4 border-white shadow-md bg-gradient-to-tr from-primary/20 to-accent-blue/20 flex items-center justify-center text-3xl">
+                🤫
+              </div>
+            </div>
+
+            {/* Prompt */}
+            <h1 className="text-xl sm:text-2xl font-bold text-center mb-5 mt-1 text-text-main">
+              Send {username} anonymous confessions...
+            </h1>
+
+            {/* Form */}
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="w-full flex-grow flex flex-col gap-3">
+                <FormField
+                  control={form.control}
+                  name="content"
+                  render={({ field }) => (
+                    <FormItem className="flex-grow flex flex-col">
+                      <FormControl>
+                        <div className="relative w-full flex-grow flex flex-col bg-background-light rounded-xl shadow-inner-soft p-4 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary/20 transition-colors duration-300">
+                          <textarea
+                            {...field}
+                            className="w-full h-full min-h-[160px] bg-transparent border-none resize-none focus:ring-0 text-base text-text-main placeholder-text-muted p-0 outline-none"
+                            placeholder="Type something nice..."
+                            spellCheck={false}
+                          />
+                          <div className="flex items-center justify-between mt-2">
+                            <button
+                              type="button"
+                              onClick={fetchSuggestedMessages}
+                              disabled={isSuggestLoading}
+                              className="w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center text-text-muted hover:text-primary hover:shadow-md transition-all duration-300"
+                            >
+                              {isSuggestLoading ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Dice5 size={18} />
+                              )}
+                            </button>
+                            <span className="text-xs font-medium text-text-muted">Anonymous</span>
+                          </div>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Suggested Messages */}
+                {!error && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {parseStringMessages(suggestedMessages).map((message, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => handleMessageClick(message)}
+                        className="px-3 py-1.5 rounded-full bg-background-light text-text-main text-xs font-medium hover:bg-primary/10 hover:text-primary transition-colors border border-gray-100"
+                      >
+                        {message}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Submit */}
+                <button
+                  type="submit"
+                  disabled={isLoading || !messageContent}
+                  className="w-full py-3.5 bg-primary text-white rounded-full font-bold text-base shadow-plush btn-squish disabled:opacity-50 disabled:transform-none flex items-center justify-center gap-2"
                 >
-                  {message}
-                </Button>
-              ))
-            )}
-          </CardContent>
-        </Card>
-      </div>
-      <Separator className="my-6" />
-      <div className="text-center">
-        <div className="mb-4">Get Your Message Board</div>
-        <Link href={'/sign-up'}>
-          <Button>Create Your Account</Button>
-        </Link>
+                  {isLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <>
+                      Send It!
+                      <Send size={16} />
+                    </>
+                  )}
+                </button>
+              </form>
+            </Form>
+          </div>
+
+          {/* ===== BACK: Success State ===== */}
+          <div className="absolute inset-0 w-full bg-white rounded-2xl backface-hidden rotate-y-180 flex flex-col items-center justify-center p-8 border border-gray-100 shadow-card text-center">
+            <div className="w-20 h-20 mb-5 rounded-full bg-green-50 flex items-center justify-center text-5xl">
+              ✅
+            </div>
+            <h2 className="text-2xl font-bold mb-3 text-text-main">Sent!</h2>
+            <p className="text-base text-text-muted mb-8 font-medium">Want to get your own link?</p>
+
+            <div className="flex flex-col gap-3 w-full max-w-xs">
+              <Link
+                href="/sign-up"
+                className="w-full py-3.5 bg-text-main text-white rounded-full font-bold text-base text-center shadow-card btn-squish block"
+              >
+                Create your own page
+              </Link>
+              <button
+                onClick={handleSendAnother}
+                className="w-full py-3.5 bg-transparent text-text-muted hover:text-text-main rounded-full font-bold text-base text-center transition-colors"
+              >
+                Send another message
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
